@@ -1,0 +1,6 @@
+[submodule "vendor/github.com/bobziuchkovski/writ"]
+	path = vendor/github.com/bobziuchkovski/writ
+	url = https://github.com/bobziuchkovski/writ.git
+[submodule "vendor/github.com/kardianos/osext"]
+	path = vendor/github.com/kardianos/osext
+	url = https://github.com/kardianos/osext
