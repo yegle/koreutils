@@ -4,3 +4,6 @@
 [submodule "vendor/github.com/kardianos/osext"]
 	path = vendor/github.com/kardianos/osext
 	url = https://github.com/kardianos/osext
+[submodule "vendor/github.com/fatih/color"]
+	path = vendor/github.com/fatih/color
+	url = https://github.com/fatih/color
