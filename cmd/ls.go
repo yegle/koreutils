@@ -60,9 +60,7 @@ var BgColorMapping = map[rune][]color.Attribute{
 }
 
 func colorized(fi os.FileInfo) string {
-	mode := fi.Mode()
-	perm := mode.Perm()
-	colorIndex := -1
+	m := fi.Mode()
 	/*
 	   Order of colors in LSCOLORS environment variable, copied from ls(1)
 	      1.   directory
@@ -77,38 +75,30 @@ func colorized(fi os.FileInfo) string {
 	      10.  directory writable to others, with sticky bit
 	      11.  directory writable to others, without sticky bit
 	*/
-	switch {
-	case mode&os.ModeDir&^os.ModeSticky != 0 && perm&TestOtherWritable != 0:
-		colorIndex = 10
-	case mode&os.ModeDir&os.ModeSticky != 0 && perm&TestOtherWritable != 0:
-		colorIndex = 9
-	case mode.IsRegular() && perm&TestExecutable != 0 && mode&os.ModeSetgid != 0:
-		colorIndex = 8
-	case mode.IsRegular() && perm&TestExecutable != 0 && mode&os.ModeSetuid != 0:
-		colorIndex = 7
-	case mode&os.ModeCharDevice != 0:
-		colorIndex = 6
-	case mode&os.ModeDevice != 0:
-		colorIndex = 5
-	case mode.IsRegular() && mode&TestExecutable != 0:
-		colorIndex = 4
-	case mode&os.ModeNamedPipe != 0:
-		colorIndex = 3
-	case mode&os.ModeSocket != 0:
-		colorIndex = 2
-	case mode&os.ModeSymlink != 0:
-		colorIndex = 1
-	case mode.IsDir():
-		colorIndex = 0
+	var i int
+	if i = 10; m&os.ModeDir&^os.ModeSticky != 0 && m&os.ModePerm&TestOtherWritable != 0 {
+	} else if i = 9; m&os.ModeDir&os.ModeSticky != 0 && m&os.ModePerm&TestOtherWritable != 0 {
+	} else if i = 8; m.IsRegular() && m&os.ModePerm&TestExecutable != 0 && m&os.ModeSetgid != 0 {
+	} else if i = 7; m.IsRegular() && m&os.ModePerm&TestExecutable != 0 && m&os.ModeSetuid != 0 {
+	} else if i = 6; m&os.ModeCharDevice != 0 {
+	} else if i = 5; m&os.ModeDevice != 0 {
+	} else if i = 4; m.IsRegular() && m&TestExecutable != 0 {
+	} else if i = 3; m&os.ModeNamedPipe != 0 {
+	} else if i = 2; m&os.ModeSocket != 0 {
+	} else if i = 1; m&os.ModeSymlink != 0 {
+	} else if i = 0; m.IsDir() {
+	} else {
+		if !Colorize {
+			return fmt.Sprintf("%-12s", fi.Name())
+		}
+		return fmt.Sprintf("%-9s", fi.Name())
 	}
-	if !Colorize || colorIndex == -1 {
-		return fmt.Sprintf("%-12s", fi.Name())
-	}
+
 	var attributes []color.Attribute
-	fgCode, bgCode := LSColors[colorIndex*2], LSColors[colorIndex*2+1]
+	fgCode, bgCode := LSColors[i*2], LSColors[i*2+1]
 	attributes = append(attributes, FgColorMapping[fgCode]...)
 	attributes = append(attributes, BgColorMapping[bgCode]...)
-	return color.New(attributes...).SprintfFunc()("%-12s", fi.Name())
+	return color.New(attributes...).SprintfFunc()("%-9s", fi.Name())
 }
 
 type List struct {
