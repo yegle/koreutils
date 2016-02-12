@@ -2,8 +2,10 @@ package main
 
 import (
 	"os"
+	"path"
 
 	"github.com/bobziuchkovski/writ"
+	"github.com/yegle/koreutils/cmd"
 )
 
 type Runner interface {
@@ -12,22 +14,18 @@ type Runner interface {
 
 const PROGNAME = "koreutils"
 
-var AllCommands = map[string]Runner{
-	"ls": &List{},
-}
-
 func main() {
-	koreutils := &Koreutils{}
-	rootcmd := writ.New("koreutils", koreutils)
-	//rootcmd.Help.Usage = "Usage: koreutils [--help] [--install] COMMAND [OPTION]... [ARG]..."
+	koreutils := &cmd.Koreutils{ProgName: PROGNAME}
+	rootcmd := writ.New(PROGNAME, koreutils)
 
-	for x := range AllCommands {
-		// Register subcommands
+	for _, x := range cmd.AllCommands {
 		rootcmd.Subcommand(x)
 	}
 
-	if os.Args[0] != PROGNAME {
-		os.Args = append([]string{PROGNAME}, os.Args...)
+	// Use basename, in case user run the symlink'ed command, e.g.
+	// /path/to/symlinked/ls.
+	if cmd := path.Base(os.Args[0]); cmd != koreutils.ProgName {
+		os.Args = append([]string{PROGNAME, cmd}, os.Args[1:]...)
 	}
 
 	path, args, err := rootcmd.Decode(os.Args[1:])
@@ -35,15 +33,10 @@ func main() {
 		path.Last().ExitHelp(err)
 	}
 
-	var runner Runner
-
-	if len(path) > 1 {
-		runner = AllCommands[path[1].String()]
+	switch path.String() {
+	case "koreutils ls":
+		koreutils.List.Run(path, args)
+	default:
+		koreutils.Run(path, args)
 	}
-
-	if runner == nil {
-		runner = koreutils
-	}
-
-	runner.Run(path, args)
 }
